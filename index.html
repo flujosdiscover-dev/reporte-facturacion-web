@@ -1,10 +1,182 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <title>Prueba Azure</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reporte de Facturación</title>
+  <style>
+    :root {
+      --primario: #2A4849;
+      --primario-osc: #1d3334;
+      --exito: #27AE60;
+      --texto: #2D3436;
+      --borde: #d9cfc0;
+      --fondo: #efe6d6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 20px; margin: 0;
+      background: linear-gradient(135deg, #f3ecdf 0%, #e4dac6 100%);
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    }
+    .form-card {
+      width: 100%; max-width: 460px; background: #fffdf9;
+      padding: 32px 28px; border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(42,72,73,0.20);
+      border-top: 5px solid var(--primario);
+      text-align: center;
+    }
+    h2 { margin: 0 0 24px; color: var(--primario); font-size: 22px; }
+    .form-group { margin-bottom: 18px; text-align: left; }
+    label { display: block; margin-bottom: 6px; font-weight: 600; color: var(--texto); font-size: 14px; }
+    input, select {
+      width: 100%; padding: 12px; border: 1px solid var(--borde);
+      border-radius: 8px; font-size: 14px; background: #fffdf9;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    input:focus, select:focus {
+      outline: none; border-color: var(--primario);
+      box-shadow: 0 0 0 3px rgba(42,72,73,0.15);
+    }
+    button {
+      width: 100%; padding: 13px; background: var(--primario); color: #fff;
+      border: none; border-radius: 8px; font-weight: bold; cursor: pointer;
+      font-size: 15px; transition: background .2s;
+    }
+    button:hover { background: var(--primario-osc); }
+    button:disabled { background: #8fa5a6; cursor: not-allowed; }
+
+    /* Pantalla de éxito */
+    .success-box { display: none; text-align: center; padding: 10px 0; }
+    .success-box.show { display: block; animation: fadeIn .4s ease; }
+    .check-circle {
+      width: 84px; height: 84px; border-radius: 50%;
+      background: rgba(39,174,96,0.12); margin: 0 auto 20px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .check-circle svg { width: 46px; height: 46px; }
+    .check-circle .path {
+      stroke: var(--exito); stroke-width: 5; fill: none;
+      stroke-linecap: round; stroke-linejoin: round;
+      stroke-dasharray: 60; stroke-dashoffset: 60;
+      animation: draw .5s ease forwards .2s;
+    }
+    .success-box h3 { color: var(--exito); margin: 0 0 8px; font-size: 20px; }
+    .success-box p { color: var(--texto); margin: 0 0 24px; font-size: 15px; line-height: 1.5; }
+    .btn-secundario { background: var(--primario); }
+    .btn-secundario:hover { background: var(--primario-osc); }
+
+    @keyframes draw { to { stroke-dashoffset: 0; } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
 </head>
 <body>
-    <h1>Azure funciona correctamente</h1>
+  <div class="form-card">
+    <!-- FORMULARIO -->
+    <div id="vistaFormulario">
+      <h2>Generar Reporte de Facturación</h2>
+      <form id="formReporte">
+        <div class="form-group">
+          <label for="empresa">Empresa:</label>
+          <select name="empresa" id="empresa" required>
+            <option value="" disabled selected>Selecciona una empresa</option>
+            <option value="ITL">ITL</option>
+            <option value="ESCALA">ESCALA</option>
+            <option value="INVENIO">INVENIO</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="mes">Mes:</label>
+          <select name="mes" id="mes" required>
+            <option value="" disabled selected>Selecciona un mes</option>
+            <option value="Enero">Enero</option>
+            <option value="Febrero">Febrero</option>
+            <option value="Marzo">Marzo</option>
+            <option value="Abril">Abril</option>
+            <option value="Mayo">Mayo</option>
+            <option value="Junio">Junio</option>
+            <option value="Julio">Julio</option>
+            <option value="Agosto">Agosto</option>
+            <option value="Septiembre">Septiembre</option>
+            <option value="Octubre">Octubre</option>
+            <option value="Noviembre">Noviembre</option>
+            <option value="Diciembre">Diciembre</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="anio">Año:</label>
+          <input type="number" name="anio" id="anio" required min="2020" max="2100" step="1" placeholder="Ej. 2026">
+        </div>
+
+        <button type="submit" id="btnEnviar">Generar Reporte</button>
+      </form>
+    </div>
+
+    <!-- PANTALLA DE ÉXITO -->
+    <div id="vistaExito" class="success-box">
+      <div class="check-circle">
+        <svg viewBox="0 0 60 60">
+          <path class="path" d="M16 31 L26 41 L45 20" />
+        </svg>
+      </div>
+      <h3>¡Reporte solicitado!</h3>
+      <p>El reporte será enviado a tu correo en unos momentos.</p>
+      <button type="button" id="btnOtro" class="btn-secundario">Generar otro reporte</button>
+    </div>
+  </div>
+
+  <script>
+    const vistaFormulario = document.getElementById('vistaFormulario');
+    const vistaExito = document.getElementById('vistaExito');
+
+    // Prefill del año con el año actual
+    document.getElementById('anio').value = new Date().getFullYear();
+
+    document.getElementById('formReporte').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btnEnviar');
+      btn.disabled = true;
+      btn.innerText = 'Enviando a n8n...';
+
+      const formData = new FormData(e.target);
+      const payload = Object.fromEntries(formData.entries());
+  
+      payload.anio = parseInt(payload.anio, 10);
+
+      try {
+        const response = await fetch('https://fl0ws.discover.com.ni/webhook/reporte_facturacion', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+          // Mostrar pantalla de éxito
+          vistaFormulario.style.display = 'none';
+          vistaExito.classList.add('show');
+        } else {
+          alert('Error al procesar la solicitud.');
+        }
+      } catch (err) {
+        alert('Error de conexión con n8n.');
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Generar Reporte';
+      }
+    });
+
+    // Volver a generar otro reporte
+    document.getElementById('btnOtro').addEventListener('click', () => {
+      const form = document.getElementById('formReporte');
+      form.reset();
+      document.getElementById('anio').value = new Date().getFullYear();
+      vistaExito.classList.remove('show');
+      vistaFormulario.style.display = 'block';
+    });
+  </script>
 </body>
 </html>
+
